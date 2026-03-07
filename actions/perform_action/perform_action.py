@@ -13,7 +13,7 @@ from src.backend.PluginManager.EventAssigner import EventAssigner
 from HomeAssistantPlugin.actions.perform_action import perform_const
 from HomeAssistantPlugin.actions.perform_action.parameters import parameters_helper
 from HomeAssistantPlugin.actions.perform_action.perform_settings import PerformActionSettings
-from HomeAssistantPlugin.actions.cores.base_core.base_core import BaseCore, requires_initialization
+from HomeAssistantPlugin.actions.cores.base_core.base_core import BaseCore, requires_initialization, _set_substring_search
 
 
 class PerformAction(BaseCore):
@@ -61,8 +61,8 @@ class PerformAction(BaseCore):
 
     def get_config_rows(self) -> List:
         """Get the rows to be displayed in the UI."""
-        return [self.domain_combo.widget, self.action_combo.widget, self.entity_search_entry.widget,
-                self.entity_combo.widget, self.parameters_expander.widget]
+        return [self.domain_combo.widget, self.action_combo.widget, self.entity_combo.widget,
+                self.parameters_expander.widget]
 
     def _create_ui_elements(self) -> None:
         """Get all action rows."""
@@ -73,6 +73,7 @@ class PerformAction(BaseCore):
             on_change=self._on_change_action, can_reset=False,
             complex_var_name=True
         )
+        _set_substring_search(self.action_combo)
 
         self.parameters_expander: ExpanderRow = ExpanderRow(
             self, perform_const.EMPTY_STRING, False,

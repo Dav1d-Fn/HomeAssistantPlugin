@@ -10,7 +10,7 @@ absolute_plugin_path = str(Path(__file__).parent.parent.parent.parent.parent.par
 sys.path.insert(0, absolute_plugin_path)
 
 from HomeAssistantPlugin.actions import const
-from HomeAssistantPlugin.actions.cores.base_core.base_core import BaseCore
+from HomeAssistantPlugin.actions.cores.base_core.base_core import BaseCore, _set_substring_search
 
 
 class TestBaseCoreCreateUiElements(unittest.TestCase):
@@ -29,16 +29,39 @@ class TestBaseCoreCreateUiElements(unittest.TestCase):
                           "on_change": instance._on_change_domain, "can_reset": False,
                           "complex_var_name": True}, instance.domain_combo.kwargs)
 
-        self.assertEqual((instance, const.SETTING_ENTITY_SEARCH, const.EMPTY_STRING,
-                          const.LABEL_ENTITY_SEARCH), instance.entity_search_entry.args)
-        self.assertEqual({"on_change": instance._on_entity_search_changed, "can_reset": False,
-                          "auto_add": False}, instance.entity_search_entry.kwargs)
-
         self.assertEqual((instance, const.SETTING_ENTITY_ENTITY, const.EMPTY_STRING, [],
                           const.LABEL_ENTITY_ENTITY), instance.entity_combo.args)
-        self.assertEqual({"enable_search": False,
+        self.assertEqual({"enable_search": True,
                           "on_change": instance._on_change_entity, "can_reset": False,
                           "complex_var_name": True}, instance.entity_combo.kwargs)
 
-        self.assertEqual([], instance._all_entities)
+    def test_set_substring_search_calls_set_search_match_mode_when_available(self):
+        """set_search_match_mode is called on the widget when the method is present."""
+        widget_mock = Mock(spec=["set_search_match_mode"])
+        combo_mock = Mock()
+        combo_mock.widget = widget_mock
+
+        with patch("HomeAssistantPlugin.actions.cores.base_core.base_core.Gtk") as gtk_mock:
+            _set_substring_search(combo_mock)
+
+        widget_mock.set_search_match_mode.assert_called_once_with(
+            gtk_mock.StringFilterMatchMode.SUBSTRING
+        )
+
+    def test_set_substring_search_is_noop_when_method_not_available(self):
+        """No error is raised when set_search_match_mode is absent (older libadwaita)."""
+        widget_mock = Mock(spec=[])  # no set_search_match_mode
+        combo_mock = Mock()
+        combo_mock.widget = widget_mock
+
+        _set_substring_search(combo_mock)  # must not raise
+
+        self.assertFalse(hasattr(widget_mock, "set_search_match_mode"))
+
+    def test_set_substring_search_is_noop_when_widget_raises(self):
+        """No error is raised when accessing the widget attribute fails."""
+        from unittest.mock import PropertyMock
+        combo_mock = Mock()
+        type(combo_mock).widget = PropertyMock(side_effect=AttributeError())
+        _set_substring_search(combo_mock)  # must not raise
 
