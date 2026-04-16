@@ -30,6 +30,9 @@ class PerformAction(BaseCore):
         """Set up action when StreamController has finished loading."""
         super().on_ready()
 
+        if not self.plugin_base.backend.is_connected():
+            return
+
         self._load_actions()
         self._reload()
 
