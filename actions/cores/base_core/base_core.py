@@ -51,6 +51,9 @@ class BaseCore(ActionCore):
 
         self.plugin_base.backend.add_action_ready_callback(self.on_ready)
 
+        if not self.plugin_base.backend.is_connected():
+            return
+
         entity = self.settings.get_entity()
         if entity and self.track_entity:
             self.plugin_base.backend.add_tracked_entity(entity, self.refresh)
