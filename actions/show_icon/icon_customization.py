@@ -15,12 +15,13 @@ class IconCustomization(Customization):
     """
 
     def __init__(self, attribute: str, operator: str, value: str, icon: str, color: tuple[int, int, int, int],
-                 scale: int, opacity: int):
+                 scale: int, opacity: int, custom_image: str = None):
         super().__init__(attribute, operator, value)
         self.icon: str = icon
         self.color: tuple[int, int, int, int] = color
         self.scale: int = scale
         self.opacity: int = opacity
+        self.custom_image: str = custom_image
 
     @classmethod
     def from_dict(cls, customization: dict):
@@ -28,7 +29,8 @@ class IconCustomization(Customization):
                    customization[customization_const.CONDITION][customization_const.OPERATOR],
                    customization[customization_const.CONDITION][customization_const.VALUE],
                    customization[icon_const.CUSTOM_ICON], customization[icon_const.CUSTOM_COLOR],
-                   customization[icon_const.CUSTOM_SCALE], customization[icon_const.CUSTOM_OPACITY])
+                   customization[icon_const.CUSTOM_SCALE], customization[icon_const.CUSTOM_OPACITY],
+                   customization.get(icon_const.CUSTOM_IMAGE))
 
     def get_icon(self) -> str:
         """
@@ -58,6 +60,13 @@ class IconCustomization(Customization):
         """
         return self.opacity
 
+    def get_custom_image(self) -> str:
+        """
+        Get the custom image path.
+        :return: path to a custom image/GIF file, or None
+        """
+        return self.custom_image
+
     def export(self) -> dict[str, Any]:
         """
         Get this customization as a dict.
@@ -72,5 +81,6 @@ class IconCustomization(Customization):
             icon_const.CUSTOM_ICON: self.icon,
             icon_const.CUSTOM_COLOR: self.color,
             icon_const.CUSTOM_SCALE: self.scale,
-            icon_const.CUSTOM_OPACITY: self.opacity
+            icon_const.CUSTOM_OPACITY: self.opacity,
+            icon_const.CUSTOM_IMAGE: self.custom_image
         }

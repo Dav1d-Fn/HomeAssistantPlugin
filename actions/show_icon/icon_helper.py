@@ -27,7 +27,10 @@ def get_icon(state: dict, settings: ShowIconSettings, is_connected: bool) -> tup
                                                                    icon_const.ICON_COLOR_RED).replace(
             "<opacity>", "1.0")), round(icon_const.DEFAULT_ICON_SCALE / 100, 2)
 
-    name, color, scale, opacity = _get_icon_settings(state, settings)
+    name, color, scale, opacity, custom_image = _get_icon_settings(state, settings)
+
+    if custom_image:
+        return custom_image, scale
 
     # convert RGB color to hex
     color = customization_helper.convert_color_list_to_hex(color)
@@ -37,12 +40,13 @@ def get_icon(state: dict, settings: ShowIconSettings, is_connected: bool) -> tup
     return (icon.replace("<color>", color).replace("<opacity>", str(opacity))), scale
 
 
-def _get_icon_settings(state: dict, settings: ShowIconSettings) -> tuple[str, str, float, float]:
+def _get_icon_settings(state: dict, settings: ShowIconSettings) -> tuple[str, str, float, float, str]:
     # default value for the icon is the icon set in HA
     name = state.get(icon_const.ATTRIBUTES, {}).get(icon_const.ATTRIBUTE_ICON, icon_const.EMPTY_STRING)
     color = settings.get_color()
     scale = settings.get_scale()
     opacity = settings.get_opacity()
+    custom_image = None
 
     if settings.get_icon() in MDI_ICONS.keys():
         name = settings.get_icon()
@@ -70,8 +74,8 @@ def _get_icon_settings(state: dict, settings: ShowIconSettings) -> tuple[str, st
 
         if ((operator == "==" and str(value) == str(custom_icon_value))
                 or (operator == "!=" and str(value) != str(custom_icon_value))):
-            name, color, scale, opacity = _replace_values(name, color, scale, opacity,
-                                                          customization)
+            name, color, scale, opacity, custom_image = _replace_values(name, color, scale, opacity,
+                                                                         custom_image, customization)
 
         if not isinstance(value, float):
             # other operators are only applicable to numbers
@@ -88,8 +92,8 @@ def _get_icon_settings(state: dict, settings: ShowIconSettings) -> tuple[str, st
                 or (operator == "<=" and value <= custom_icon_value)
                 or (operator == ">" and value > custom_icon_value)
                 or (operator == ">=" and value >= custom_icon_value)):
-            name, color, scale, opacity = _replace_values(name, color, scale, opacity,
-                                                          customization)
+            name, color, scale, opacity, custom_image = _replace_values(name, color, scale, opacity,
+                                                                         custom_image, customization)
 
     #
     # End custom icon
@@ -97,7 +101,7 @@ def _get_icon_settings(state: dict, settings: ShowIconSettings) -> tuple[str, st
     scale = round(scale / 100, 2)
     opacity = round(opacity / 100, 2)
 
-    return name, color, scale, opacity
+    return name, color, scale, opacity, custom_image
 
 
 def get_value(state: dict, customization: IconCustomization):
@@ -112,11 +116,13 @@ def get_value(state: dict, customization: IconCustomization):
     return value
 
 
-def _replace_values(name: str, color: str, scale: float, opacity: str, customization: IconCustomization):
+def _replace_values(name: str, color: str, scale: float, opacity: str, custom_image: str,
+                    customization: IconCustomization):
     ret_name = name
     ret_color = color
     ret_scale = scale
     ret_opacity = opacity
+    ret_custom_image = custom_image
 
     if customization.get_icon() is not None:
         ret_name = customization.get_icon()
@@ -130,7 +136,10 @@ def _replace_values(name: str, color: str, scale: float, opacity: str, customiza
     if customization.get_opacity() is not None:
         ret_opacity = customization.get_opacity()
 
-    return ret_name, ret_color, ret_scale, ret_opacity
+    if customization.get_custom_image() is not None:
+        ret_custom_image = customization.get_custom_image()
+
+    return ret_name, ret_color, ret_scale, ret_opacity, ret_custom_image
 
 
 def _get_icon_path(name: str) -> str:
