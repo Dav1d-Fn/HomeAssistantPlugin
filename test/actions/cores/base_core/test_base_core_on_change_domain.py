@@ -167,3 +167,28 @@ class TestBaseCoreOnChangeDomain(unittest.TestCase):
         load_entities_mock.assert_called_once()
         set_enabled_disabled_mock.assert_called_once()
 
+    @patch.object(BaseCore, "create_ui_elements")
+    @patch.object(BaseCore, "_create_event_assigner")
+    @patch.object(BaseCore, "_load_entities")
+    @patch.object(BaseCore, "set_enabled_disabled")
+    def test_on_change_domain_resets_entity_cache(self, set_enabled_disabled_mock, load_entities_mock, _, __):
+        """Changing domain must reset _last_loaded_entities so entities are re-populated."""
+        entity_id = "light.living_room"
+
+        settings_mock = Mock()
+        settings_mock.get_entity = Mock(return_value=entity_id)
+        settings_mock.reset = Mock()
+
+        entity_combo_mock = Mock()
+
+        instance = BaseCore(Mock(), True)
+        instance.initialized = True
+        instance.settings = settings_mock
+        instance.entity_combo = entity_combo_mock
+        # Pre-populate the entity cache
+        instance._last_loaded_entities = ["light.living_room", "light.kitchen"]
+
+        instance.on_change_domain(None, "switch", "light")
+
+        self.assertIsNone(instance._last_loaded_entities)
+

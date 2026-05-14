@@ -298,7 +298,7 @@ class HomeAssistantBackend:
 
     def remove_action_ready_callback(self, on_ready: Callable) -> None:
         """Deregister a callback that was registered to be called when the action is ready."""
-        self._action_ready_callbacks.remove(on_ready)
+        self._action_ready_callbacks.discard(on_ready)
 
     def add_tracked_entity(
             self, entity_id: str, action_entity_updated: Callable
@@ -344,8 +344,10 @@ class HomeAssistantBackend:
             return
 
         domain = entity_id.split(backend_const.DOT)[0]
-        entity_settings = self._entities[domain].get(entity_id, {})
-        entity_settings.get(backend_const.ACTIONS, set()).remove(action_entity_updated)
+        entity_settings = self._entities.get(domain, {}).get(entity_id)
+        if entity_settings is None:
+            return
+        entity_settings.get(backend_const.ACTIONS, set()).discard(action_entity_updated)
 
         if len(entity_settings.get(backend_const.ACTIONS, set())) > 0:
             # the entity is still attached to another key, so keep the trigger subscription
