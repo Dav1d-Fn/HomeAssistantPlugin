@@ -29,7 +29,6 @@ class TestBaseCoreLoadDomains(unittest.TestCase):
 
         domain_combo_mock = Mock()
         domain_combo_mock.populate = Mock()
-        domain_combo_mock.get_item_amount.return_value = 0
 
         instance = BaseCore(Mock(), True)
         instance.initialized = True
@@ -57,7 +56,6 @@ class TestBaseCoreLoadDomains(unittest.TestCase):
 
         domain_combo_mock = Mock()
         domain_combo_mock.populate = Mock()
-        domain_combo_mock.get_item_amount.return_value = 0
 
         instance = BaseCore(Mock(), True)
         instance.initialized = True
@@ -85,7 +83,6 @@ class TestBaseCoreLoadDomains(unittest.TestCase):
 
         domain_combo_mock = Mock()
         domain_combo_mock.populate = Mock()
-        domain_combo_mock.get_item_amount.return_value = 0
 
         instance = BaseCore(Mock(), True)
         instance.initialized = True
@@ -109,13 +106,41 @@ class TestBaseCoreLoadDomains(unittest.TestCase):
 
         domain_combo_mock = Mock()
         domain_combo_mock.populate = Mock()
-        domain_combo_mock.get_item_amount.return_value = 3
-        domain_combo_mock.get_item_at.side_effect = ["light", "sensor", "switch"]
 
         instance = BaseCore(Mock(), True)
         instance.initialized = True
         instance.settings = settings_mock
         instance.domain_combo = domain_combo_mock
+        # Simulate that domains were already loaded (Python-level cache)
+        instance._last_loaded_domains = sorted(domains)
         instance._load_domains()
 
         domain_combo_mock.populate.assert_not_called()
+
+    @patch.object(BaseCore, "create_ui_elements")
+    @patch.object(BaseCore, "_create_event_assigner")
+    @patch.object(BaseCore, "_get_domains")
+    def test_load_domains_no_double_populate_on_repeated_call(self, get_domains_mock, _, __):
+        """Second call with identical domains must not trigger a second populate()."""
+        domains = ["light", "sensor", "switch"]
+        domain = "light"
+
+        get_domains_mock.return_value = domains
+
+        settings_mock = Mock()
+        settings_mock.get_domain = Mock(return_value=domain)
+
+        domain_combo_mock = Mock()
+        domain_combo_mock.populate = Mock()
+
+        instance = BaseCore(Mock(), True)
+        instance.initialized = True
+        instance.settings = settings_mock
+        instance.domain_combo = domain_combo_mock
+
+        # Two rapid successive calls (simulating double page-load)
+        instance._load_domains()
+        instance._load_domains()
+
+        # populate() must only have been called once
+        domain_combo_mock.populate.assert_called_once_with(sorted(domains), domain, trigger_callback=False)

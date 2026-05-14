@@ -41,6 +41,8 @@ class BaseCore(ActionCore):
         self.track_entity = track_entity
         self.domain_combo = None
         self.entity_combo = None
+        self._last_loaded_domains: list | None = None
+        self._last_loaded_entities: list | None = None
         self.create_ui_elements()
         self._create_event_assigner()
 
@@ -113,6 +115,7 @@ class BaseCore(ActionCore):
                 self.plugin_base.backend.remove_tracked_entity(entity, self.refresh)
             self.settings.reset(domain)
             self.entity_combo.remove_all_items()
+            self._last_loaded_entities = None
 
         if domain:
             self._load_entities()
@@ -159,7 +162,9 @@ class BaseCore(ActionCore):
             domains.append(domain)
         domains = [d for d in domains if d is not None]
         domains.sort()
-        if domains != self._get_current_domains():
+        old_domains = self._last_loaded_domains
+        self._last_loaded_domains = list(domains)
+        if domains != old_domains:
             self.domain_combo.populate(domains, domain, trigger_callback=False)
 
     @requires_initialization
@@ -173,22 +178,10 @@ class BaseCore(ActionCore):
             entities.append(entity)
         entities = [e for e in entities if e is not None]
         entities.sort()
-        if entities != self._get_current_entities():
+        old_entities = self._last_loaded_entities
+        self._last_loaded_entities = list(entities)
+        if entities != old_entities:
             self.entity_combo.populate(entities, entity, trigger_callback=False)
-
-    def _get_current_domains(self) -> list[str]:
-        """Get the domains currently displayed in the domain combo."""
-        return [
-            str(self.domain_combo.get_item_at(i))
-            for i in range(self.domain_combo.get_item_amount())
-        ]
-
-    def _get_current_entities(self) -> list[str]:
-        """Get the entities currently displayed in the entity combo."""
-        return [
-            str(self.entity_combo.get_item_at(i))
-            for i in range(self.entity_combo.get_item_amount())
-        ]
 
     @requires_initialization
     def set_enabled_disabled(self) -> None:
