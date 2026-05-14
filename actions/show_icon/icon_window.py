@@ -7,6 +7,7 @@ from functools import partial
 from typing import Callable
 
 import gi
+
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gio
 from gi.repository.Gtk import Box, Button, FileDialog, FileFilter, Label, Orientation
@@ -167,8 +168,8 @@ class IconWindow(CustomizationWindow):
         self.opacity_entry.set_text(
             str(int(self.current.get_opacity() or icon_const.DEFAULT_ICON_OPACITY)))
 
-        self.image_entry.set_text(self.current.get_custom_image() or icon_const.EMPTY_STRING)
-        self.check_image.set_active(self.current.get_custom_image() is not None)
+        self.image_entry.set_text(self.current.get_image() or icon_const.EMPTY_STRING)
+        self.check_image.set_active(self.current.get_image() is not None)
         self._on_check_image_toggled()
 
     def on_add_button(self, *_, **__) -> None:
@@ -205,13 +206,13 @@ class IconWindow(CustomizationWindow):
         scale = int(self.scale.get_value()) if self.check_scale.get_active() else None
         opacity = int(
             self.opacity.get_value()) if self.check_opacity.get_active() else None
-        custom_image = self.image_entry.get_text() if self.check_image.get_active() else None
+        image = self.image_entry.get_text() if self.check_image.get_active() else None
 
         self.callback(customization=IconCustomization(
             attribute=self.condition_attribute.get_selected_item().get_string(),
             operator=self.operator.get_selected_item().value,
             value=self.entry_value.get_text(), icon=icon, color=color_list, scale=scale,
-            opacity=opacity, custom_image=custom_image), index=self.index)
+            opacity=opacity, image=image), index=self.index)
 
         self.destroy()
 

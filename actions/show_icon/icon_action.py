@@ -5,6 +5,7 @@ The module for the Home Assistant action that is loaded in StreamController.
 import os
 
 import gi
+
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gio
 from gi.repository.Gtk import Align, Button, FileDialog, FileFilter
@@ -31,7 +32,7 @@ class ShowIcon(CustomizationCore):
         self.color = None
         self.scale = None
         self.opacity = None
-        self.custom_image = None
+        self.image = None
         super().__init__(window_implementation=IconWindow, customization_implementation=IconCustomization,
                          row_implementation=IconRow, settings_implementation=ShowIconSettings, track_entity=True, *args,
                          **kwargs)
@@ -39,7 +40,7 @@ class ShowIcon(CustomizationCore):
     def get_config_rows(self) -> list:
         """Get the rows to be displayed in the UI."""
         return [self.domain_combo.widget, self.entity_combo.widget, self.icon.widget, self.color.widget,
-                self.scale.widget, self.opacity.widget, self.custom_image.widget, self.customization_expander.widget]
+                self.scale.widget, self.opacity.widget, self.image.widget, self.customization_expander.widget]
 
     def create_ui_elements(self) -> None:
         """Get all action rows."""
@@ -71,18 +72,16 @@ class ShowIcon(CustomizationCore):
             can_reset=False, complex_var_name=True
         )
 
-        image_label = self.lm.get(icon_const.LABEL_ICON_IMAGE).rstrip(":")
-        image_overrides = self.lm.get(icon_const.LABEL_ICON_IMAGE_OVERRIDES)
-        self.custom_image: EntryRow = EntryRow(
-            self, icon_const.SETTING_ICON_CUSTOM_IMAGE, icon_const.EMPTY_STRING,
-            title=f"{image_label} ({image_overrides}):", on_change=self._reload,
-            can_reset=True, complex_var_name=True
+        self.image: EntryRow = EntryRow(
+            self, icon_const.SETTING_ICON_IMAGE, icon_const.EMPTY_STRING,
+            title=icon_const.LABEL_ICON_IMAGE, on_change=self._reload,
+            can_reset=False, complex_var_name=True
         )
 
         browse_button = Button(label=self.lm.get(icon_const.LABEL_ICON_BROWSE))
         browse_button.set_valign(Align.CENTER)
         browse_button.connect("clicked", self._on_browse_clicked)
-        self.custom_image.widget.add_suffix(browse_button)
+        self.image.widget.add_suffix(browse_button)
 
     @requires_initialization
     def set_enabled_disabled(self) -> None:
@@ -109,11 +108,11 @@ class ShowIcon(CustomizationCore):
             self.opacity.widget.set_sensitive(False)
             self.opacity.widget.set_subtitle(self.lm.get(icon_const.LABEL_ICON_NO_ENTITY))
 
-            self.custom_image.widget.set_sensitive(False)
+            self.image.widget.set_sensitive(False)
         else:
-            self.custom_image.widget.set_sensitive(True)
+            self.image.widget.set_sensitive(True)
 
-            has_image = bool(self.settings.get_custom_image())
+            has_image = bool(self.settings.get_image())
 
             self.icon.widget.set_sensitive(not has_image)
 
@@ -164,7 +163,7 @@ class ShowIcon(CustomizationCore):
         dialog.set_filters(filters)
         dialog.set_default_filter(filter_images)
 
-        current_path = self.custom_image.widget.get_text()
+        current_path = self.image.widget.get_text()
         if current_path:
             current_dir = os.path.dirname(current_path)
             if os.path.isdir(current_dir):
@@ -176,7 +175,7 @@ class ShowIcon(CustomizationCore):
         try:
             file = dialog.open_finish(result)
             if file:
-                self.custom_image.widget.set_text(file.get_path())
+                self.image.widget.set_text(file.get_path())
                 self._reload()
         except Exception:
             pass
