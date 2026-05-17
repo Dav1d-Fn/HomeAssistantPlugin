@@ -11,6 +11,8 @@ gi.require_version("Gtk", "4.0")
 from gi.repository import Gio
 from gi.repository.Gtk import Button, FileDialog, FileFilter
 
+from loguru import logger as log
+
 from HomeAssistantPlugin.actions import const as base_const
 from HomeAssistantPlugin.actions.cores.customization_core import customization_helper
 from HomeAssistantPlugin.actions.cores.customization_core.customization_window import CustomizationWindow
@@ -126,10 +128,8 @@ class IconWindow(CustomizationWindow):
 
         super().set_current_values()
 
-        # backward compat: old customizations may have stored the path in image instead of icon
-        icon_or_image = self.current.get_icon() or self.current.get_image()
-        self.icon.set_text(icon_or_image or icon_const.EMPTY_STRING)
-        self.check_icon.set_active(icon_or_image is not None)
+        self.icon.set_text(self.current.get_icon() or icon_const.EMPTY_STRING)
+        self.check_icon.set_active(self.current.get_icon() is not None)
         self._on_icon_changed()
 
         if self.current.get_color():
@@ -175,15 +175,15 @@ class IconWindow(CustomizationWindow):
             attribute=self.condition_attribute.get_selected_item().get_string(),
             operator=self.operator.get_selected_item().value,
             value=self.entry_value.get_text(), icon=icon, color=color_list, scale=scale,
-            opacity=opacity, image=None), index=self.index)
+            opacity=opacity), index=self.index)
 
         self.destroy()
 
     def _on_icon_changed(self, *_) -> None:
         icon_value = self.icon.get_text()
-        has_image = bool(icon_value) and icon_value not in icon_helper.MDI_ICONS
+        has_icon = bool(icon_value) and icon_value in icon_helper.MDI_ICONS
         for widget in [self.check_color, self.color, self.check_opacity, self.opacity, self.opacity_entry]:
-            widget.set_sensitive(not has_image)
+            widget.set_sensitive(has_icon)
 
     def _on_browse_clicked(self, *_) -> None:
         dialog = FileDialog()
@@ -213,8 +213,8 @@ class IconWindow(CustomizationWindow):
                 self.icon.set_text(file.get_path())
                 self.check_icon.set_active(True)
                 self._on_icon_changed()
-        except Exception:
-            pass
+        except Exception as e:
+            log.error(f"Error choosing file: {e}")
 
     def on_widget_changed(self, *_, **__) -> None:
         super().on_widget_changed()

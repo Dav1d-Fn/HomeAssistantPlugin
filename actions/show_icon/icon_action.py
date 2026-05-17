@@ -10,6 +10,8 @@ gi.require_version("Gtk", "4.0")
 from gi.repository import Gio
 from gi.repository.Gtk import Align, Button, FileDialog, FileFilter
 
+from loguru import logger as log
+
 from HomeAssistantPlugin.actions.cores.base_core.base_core import requires_initialization
 from HomeAssistantPlugin.actions.cores.customization_core.customization_core import CustomizationCore
 from HomeAssistantPlugin.actions.show_icon import icon_const, icon_helper
@@ -104,18 +106,18 @@ class ShowIcon(CustomizationCore):
 
         else:
             icon_value = self.settings.get_icon()
-            has_image = bool(icon_value) and icon_value not in icon_helper.MDI_ICONS
-            not_supported = self.lm.get(icon_const.LABEL_ICON_NOT_SUPPORTED_FOR_IMAGES) if has_image else icon_const.EMPTY_STRING
+            has_icon = bool(icon_value) and icon_value in icon_helper.MDI_ICONS
+            not_supported = self.lm.get(icon_const.LABEL_ICON_ONLY_SUPPORTED_FOR_ICONS) if not has_icon else icon_const.EMPTY_STRING
 
             self.icon.widget.set_sensitive(True)
 
-            self.color.widget.set_sensitive(not has_image)
+            self.color.widget.set_sensitive(has_icon)
             self.color.widget.set_subtitle(not_supported)
 
             self.scale.widget.set_sensitive(True)
             self.scale.widget.set_subtitle(icon_const.EMPTY_STRING)
 
-            self.opacity.widget.set_sensitive(not has_image)
+            self.opacity.widget.set_sensitive(has_icon)
             self.opacity.widget.set_subtitle(not_supported)
 
     def refresh(self, state: dict = None) -> None:
@@ -170,8 +172,8 @@ class ShowIcon(CustomizationCore):
             if file:
                 self.icon.widget.set_text(file.get_path())
                 self._reload()
-        except Exception:
-            pass
+        except Exception as e:
+            log.error(f"Error choosing file: {e}")
 
     def _get_domains(self) -> list[str]:
         """This class needs all domains that provide actions in Home Assistant."""

@@ -27,10 +27,11 @@ def get_icon(state: dict, settings: ShowIconSettings, is_connected: bool) -> tup
                                                                    icon_const.ICON_COLOR_RED).replace(
             "<opacity>", "1.0")), round(icon_const.DEFAULT_ICON_SCALE / 100, 2)
 
-    name, color, scale, opacity, image = _get_icon_settings(state, settings)
+    name, color, scale, opacity = _get_icon_settings(state, settings)
 
-    if image:
-        return image, scale
+    if name not in MDI_ICONS:
+        # color and opacity only have an effect on icons
+        return name, scale
 
     # convert RGB color to hex
     color = customization_helper.convert_color_list_to_hex(color)
@@ -40,19 +41,12 @@ def get_icon(state: dict, settings: ShowIconSettings, is_connected: bool) -> tup
     return (icon.replace("<color>", color).replace("<opacity>", str(opacity))), scale
 
 
-def _get_icon_settings(state: dict, settings: ShowIconSettings) -> tuple[str, str, float, float, str]:
+def _get_icon_settings(state: dict, settings: ShowIconSettings) -> tuple[str, str, float, float]:
     # default value for the icon is the icon set in HA
-    name = state.get(icon_const.ATTRIBUTES, {}).get(icon_const.ATTRIBUTE_ICON, icon_const.EMPTY_STRING)
+    name = state.get(icon_const.ATTRIBUTES, {}).get(icon_const.ATTRIBUTE_ICON, icon_const.EMPTY_STRING) or settings.get_icon()
     color = settings.get_color()
     scale = settings.get_scale()
     opacity = settings.get_opacity()
-    image = None
-
-    icon_value = settings.get_icon()
-    if icon_value in MDI_ICONS:
-        name = icon_value
-    elif icon_value:
-        image = icon_value
 
     #
     # Begin custom icon
@@ -77,8 +71,8 @@ def _get_icon_settings(state: dict, settings: ShowIconSettings) -> tuple[str, st
 
         if ((operator == "==" and str(value) == str(custom_icon_value))
                 or (operator == "!=" and str(value) != str(custom_icon_value))):
-            name, color, scale, opacity, image = _replace_values(name, color, scale, opacity,
-                                                                 image, customization)
+            name, color, scale, opacity = _replace_values(name, color, scale, opacity,
+                                                          customization)
 
         if not isinstance(value, float):
             # other operators are only applicable to numbers
@@ -95,8 +89,7 @@ def _get_icon_settings(state: dict, settings: ShowIconSettings) -> tuple[str, st
                 or (operator == "<=" and value <= custom_icon_value)
                 or (operator == ">" and value > custom_icon_value)
                 or (operator == ">=" and value >= custom_icon_value)):
-            name, color, scale, opacity, image = _replace_values(name, color, scale, opacity,
-                                                                 image, customization)
+            name, color, scale, opacity = _replace_values(name, color, scale, opacity, customization)
 
     #
     # End custom icon
@@ -104,7 +97,7 @@ def _get_icon_settings(state: dict, settings: ShowIconSettings) -> tuple[str, st
     scale = round(scale / 100, 2)
     opacity = round(opacity / 100, 2)
 
-    return name, color, scale, opacity, image
+    return name, color, scale, opacity
 
 
 def get_value(state: dict, customization: IconCustomization):
@@ -119,23 +112,14 @@ def get_value(state: dict, customization: IconCustomization):
     return value
 
 
-def _replace_values(name: str, color: str, scale: float, opacity: str, image: str,
-                    customization: IconCustomization):
+def _replace_values(name: str, color: str, scale: float, opacity: str, customization: IconCustomization):
     ret_name = name
     ret_color = color
     ret_scale = scale
     ret_opacity = opacity
-    ret_image = image
 
     if customization.get_icon() is not None:
-        icon_val = customization.get_icon()
-        if icon_val in MDI_ICONS:
-            ret_name = icon_val
-        else:
-            ret_image = icon_val
-
-    if customization.get_image() is not None:
-        ret_image = customization.get_image()
+        ret_name = customization.get_icon()
 
     if customization.get_color() is not None:
         ret_color = customization.get_color()
@@ -146,10 +130,7 @@ def _replace_values(name: str, color: str, scale: float, opacity: str, image: st
     if customization.get_opacity() is not None:
         ret_opacity = customization.get_opacity()
 
-    if customization.get_image() is not None:
-        ret_image = customization.get_image()
-
-    return ret_name, ret_color, ret_scale, ret_opacity, ret_image
+    return ret_name, ret_color, ret_scale, ret_opacity
 
 
 def _get_icon_path(name: str) -> str:

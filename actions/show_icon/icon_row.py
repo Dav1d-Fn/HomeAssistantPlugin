@@ -38,8 +38,4 @@ class IconRow(CustomizationRow):
             title += (f"\n{self.lm.get(icon_const.LABEL_ICON_OPACITY)} "
                       f"{int(customization.get_opacity())}")
 
-        if customization.get_image() is not None:
-            title += (f"\n{self.lm.get(icon_const.LABEL_ICON_IMAGE)} "
-                      f"{customization.get_image()}")
-
         self.set_title(title)

@@ -1,5 +1,5 @@
 """
-Module to manage icon customizations.
+Modul to manage icon customizations.
 """
 
 from typing import Any
@@ -15,22 +15,20 @@ class IconCustomization(Customization):
     """
 
     def __init__(self, attribute: str, operator: str, value: str, icon: str, color: tuple[int, int, int, int],
-                 scale: int, opacity: int, image: str):
+                 scale: int, opacity: int):
         super().__init__(attribute, operator, value)
         self.icon: str = icon
         self.color: tuple[int, int, int, int] = color
         self.scale: int = scale
         self.opacity: int = opacity
-        self.image: str = image
 
     @classmethod
     def from_dict(cls, customization: dict):
         return cls(customization[customization_const.CONDITION][customization_const.ATTRIBUTE],
                    customization[customization_const.CONDITION][customization_const.OPERATOR],
                    customization[customization_const.CONDITION][customization_const.VALUE],
-                   customization.get(icon_const.CUSTOM_ICON), customization.get(icon_const.CUSTOM_COLOR),
-                   customization.get(icon_const.CUSTOM_SCALE), customization.get(icon_const.CUSTOM_OPACITY),
-                   customization.get(icon_const.CUSTOM_IMAGE))
+                   customization[icon_const.CUSTOM_ICON], customization[icon_const.CUSTOM_COLOR],
+                   customization[icon_const.CUSTOM_SCALE], customization[icon_const.CUSTOM_OPACITY])
 
     def get_icon(self) -> str:
         """
@@ -60,13 +58,6 @@ class IconCustomization(Customization):
         """
         return self.opacity
 
-    def get_image(self) -> str:
-        """
-        Get the image path.
-        :return: path to an image/GIF file, or None
-        """
-        return self.image
-
     def export(self) -> dict[str, Any]:
         """
         Get this customization as a dict.
@@ -81,6 +72,5 @@ class IconCustomization(Customization):
             icon_const.CUSTOM_ICON: self.icon,
             icon_const.CUSTOM_COLOR: self.color,
             icon_const.CUSTOM_SCALE: self.scale,
-            icon_const.CUSTOM_OPACITY: self.opacity,
-            icon_const.CUSTOM_IMAGE: self.image
+            icon_const.CUSTOM_OPACITY: self.opacity
         }

@@ -23,20 +23,10 @@ class ShowIconSettings(CustomizationSettings):
     def __init__(self, action):
         super().__init__(action, icon_const.SETTING_ICON, IconCustomization)
 
-        settings = self._action.get_settings()
-        icon_settings = settings.get(icon_const.SETTING_ICON)
-        if not icon_settings:
+        if not self._action.get_settings().get(icon_const.SETTING_ICON):
+            settings = self._action.get_settings()
             settings[icon_const.SETTING_ICON] = DEFAULT_SETTINGS.copy()
             self._action.set_settings(settings)
-        else:
-            # Fill in any missing keys from DEFAULT_SETTINGS
-            changed = False
-            for key, value in DEFAULT_SETTINGS.items():
-                if key not in icon_settings:
-                    icon_settings[key] = value
-                    changed = True
-            if changed:
-                self._action.set_settings(settings)
 
     def get_icon(self) -> str:
         """
@@ -65,4 +55,3 @@ class ShowIconSettings(CustomizationSettings):
         :return: the opacity
         """
         return int(self._action.get_settings()[icon_const.SETTING_ICON][icon_const.SETTING_OPACITY])
-

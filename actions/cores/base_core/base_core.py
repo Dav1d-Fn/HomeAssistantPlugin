@@ -2,7 +2,7 @@
 
 import gi
 from HomeAssistantPlugin.actions import const
-from HomeAssistantPlugin.actions.cores.base_core.migrate import migrate
+from HomeAssistantPlugin.actions.cores.base_core.migrate import migrate_settings
 
 from GtkHelper.GenerativeUI.ComboRow import ComboRow
 from src.backend.PluginManager.ActionCore import ActionCore
@@ -50,7 +50,7 @@ class BaseCore(ActionCore):
 
     def on_ready(self) -> None:
         """Set up action when StreamController has finished loading."""
-        migrate(self)
+        migrate_settings(self)
         self.settings = self.settings_implementation(self)
         self.initialized = True
 

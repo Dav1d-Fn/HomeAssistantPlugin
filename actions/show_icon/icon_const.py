@@ -35,7 +35,7 @@ CUSTOM_IMAGE = "image"
 
 LABEL_ICON_IMAGE = "actions.home_assistant.icon.image.label"
 LABEL_ICON_BROWSE = "actions.home_assistant.icon.browse.label"
-LABEL_ICON_NOT_SUPPORTED_FOR_IMAGES = "actions.home_assistant.icon.not_supported_for_images.label"
+LABEL_ICON_ONLY_SUPPORTED_FOR_ICONS = "actions.home_assistant.icon.only_supported_for_icons.label"
 
 MDI_SVG_JSON = "assets/mdi-svg.json"
 ICON_COLOR_RED = "#ff0000"

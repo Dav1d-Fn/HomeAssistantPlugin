@@ -4,25 +4,24 @@ from HomeAssistantPlugin.actions.show_icon import icon_const
 from HomeAssistantPlugin.actions.show_icon.icon_settings import ShowIconSettings
 
 
-def migrate(action) -> None:
+def migrate_settings(action) -> None:
     settings = action.get_settings()
 
-    if settings.get(const.SETTING_VERSION, 0) > 1:
+    if settings.get(const.SETTING_VERSION) is not None:
         return
 
-    migrate_v1_v2(action)
+    migrate_v0_v1(action)
 
-def migrate_v1_v2(action) -> None:
+def migrate_v0_v1(action) -> None:
+    """
+    Migrate from v1 to v2.
+    There is actually nothing to do yet - this just introduces the version field.
+    """
     settings = action.get_settings()
 
-    settings[const.SETTING_VERSION] = 2
-    action.set_settings(settings)
-
-    if action.__class__.__name__ != "ShowIcon":
+    if not settings:
+        # settings are empty - this is a brand-new action
         return
 
-    settings[icon_const.SETTING_ICON][icon_const.SETTING_IMAGE] = icon_const.EMPTY_STRING
-    for customization in settings[icon_const.SETTING_ICON][customization_const.SETTING_CUSTOMIZATIONS]:
-        customization[icon_const.CUSTOM_IMAGE] = icon_const.EMPTY_STRING
-
+    settings[const.SETTING_VERSION] = const.SETTING_VERSION_NUMBER
     action.set_settings(settings)
