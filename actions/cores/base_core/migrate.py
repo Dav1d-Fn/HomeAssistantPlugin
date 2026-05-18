@@ -14,7 +14,7 @@ def migrate_settings(action) -> None:
 
 def migrate_v0_v1(action) -> None:
     """
-    Migrate from v1 to v2.
+    Migrate from no version to v1.
     There is actually nothing to do yet - this just introduces the version field.
     """
     settings = action.get_settings()
