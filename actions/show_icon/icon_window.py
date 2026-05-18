@@ -54,7 +54,7 @@ class IconWindow(CustomizationWindow):
         browse_button.set_margin_top(self.default_margin)
         browse_button.set_margin_bottom(self.default_margin)
         browse_button.set_margin_start(self.default_margin)
-        browse_button.set_margin_end(self.default_margin)
+        browse_button.set_margin_end(15)
         self.connect_rows.append(partial(browse_button.connect, base_const.CONNECT_CLICKED, self._on_browse_clicked))
 
         self.color = self._create_color_button(self.check_color)
